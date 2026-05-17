@@ -14,6 +14,33 @@ interface ListDetail {
 const route = useRoute()
 const supabase = useSupabaseClient()
 const { profile } = useCurrentProfile()
+const { exportExcel, exportPdf } = useListExport()
+const toast = useToast()
+
+const exporting = ref(false)
+
+async function onExport(kind: 'excel' | 'pdf') {
+  if (!list.value) return
+  exporting.value = true
+  try {
+    const ctx = {
+      title: list.value.title,
+      createdAt: list.value.created_at,
+      rows: orderedRows.value
+    }
+    if (kind === 'excel') await exportExcel(ctx)
+    else await exportPdf(ctx)
+  } catch (e) {
+    const err = e as Error
+    toast.add({
+      title: `Export failed`,
+      description: err.message,
+      color: 'error'
+    })
+  } finally {
+    exporting.value = false
+  }
+}
 
 const id = computed(() => String(route.params.id))
 const list = ref<ListDetail | null>(null)
@@ -78,14 +105,18 @@ onMounted(load)
           <UButton
             variant="subtle"
             icon="i-lucide-file-spreadsheet"
-            disabled
+            :loading="exporting"
+            :disabled="!list || !orderedRows.length"
+            @click="onExport('excel')"
           >
             Export Excel
           </UButton>
           <UButton
             variant="subtle"
             icon="i-lucide-file-text"
-            disabled
+            :loading="exporting"
+            :disabled="!list || !orderedRows.length"
+            @click="onExport('pdf')"
           >
             Export PDF
           </UButton>
