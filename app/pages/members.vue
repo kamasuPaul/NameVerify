@@ -204,7 +204,7 @@ async function cancelInvite(email: string) {
             </div>
           </section>
 
-          <InviteUserModal :open="inviteOpen" />
+          <InviteUserModal v-model:open="inviteOpen" @invited="load" />
         </template>
 
       </div>
