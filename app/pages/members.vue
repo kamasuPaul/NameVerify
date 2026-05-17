@@ -97,16 +97,18 @@ async function cancelInvite(email: string) {
 
     <template #body>
       <div class="flex flex-col gap-6 max-w-5xl">
-        <p v-if="loading" class="text-sm text-muted">
-          Loading…
-        </p>
+        <div v-if="loading" class="flex flex-col gap-2">
+          <USkeleton class="h-10 w-full" />
+          <USkeleton class="h-10 w-full" />
+          <USkeleton class="h-10 w-full" />
+        </div>
 
         <template v-else>
           <section class="flex flex-col gap-2">
             <h2 class="text-sm text-muted">
               Members ({{ profiles.length }})
             </h2>
-            <div class="border border-default rounded-lg overflow-hidden">
+            <div class="border border-default rounded-lg overflow-x-auto">
               <table class="w-full text-sm">
                 <thead class="bg-elevated/50 text-left text-muted">
                   <tr>
@@ -159,7 +161,7 @@ async function cancelInvite(email: string) {
             <h2 class="text-sm text-muted">
               Pending invites ({{ invites.length }})
             </h2>
-            <div class="border border-default rounded-lg overflow-hidden">
+            <div class="border border-default rounded-lg overflow-x-auto">
               <table class="w-full text-sm">
                 <thead class="bg-elevated/50 text-left text-muted">
                   <tr>

@@ -67,9 +67,11 @@ onMounted(load)
           :title="errorMessage"
         />
 
-        <p v-if="loading" class="text-sm text-muted">
-          Loading…
-        </p>
+        <div v-if="loading" class="flex flex-col gap-2">
+          <USkeleton class="h-10 w-full" />
+          <USkeleton class="h-10 w-full" />
+          <USkeleton class="h-10 w-full" />
+        </div>
 
         <UPageCard
           v-else-if="!lists.length"
@@ -78,7 +80,7 @@ onMounted(load)
           variant="subtle"
         />
 
-        <div v-else class="border border-default rounded-lg overflow-hidden">
+        <div v-else class="border border-default rounded-lg overflow-x-auto">
           <table class="w-full text-sm">
             <thead class="bg-elevated/50 text-left text-muted">
               <tr>

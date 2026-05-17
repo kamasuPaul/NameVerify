@@ -135,9 +135,12 @@ onMounted(load)
           :title="errorMessage"
         />
 
-        <p v-if="loading" class="text-sm text-muted">
-          Loading…
-        </p>
+        <div v-if="loading" class="flex flex-col gap-3">
+          <USkeleton class="h-24 w-full" />
+          <USkeleton class="h-10 w-full" />
+          <USkeleton class="h-10 w-full" />
+          <USkeleton class="h-10 w-full" />
+        </div>
 
         <template v-else-if="list">
           <UPageCard variant="subtle">
@@ -188,7 +191,7 @@ onMounted(load)
             </div>
           </UPageCard>
 
-          <div class="border border-default rounded-lg overflow-hidden">
+          <div class="border border-default rounded-lg overflow-x-auto">
             <table class="w-full text-sm">
               <thead class="bg-elevated/50 text-left text-muted">
                 <tr>

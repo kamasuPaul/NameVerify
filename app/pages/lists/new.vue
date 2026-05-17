@@ -183,7 +183,7 @@ async function save() {
           <UInput v-model="title" placeholder="e.g. Payroll — May 2026" />
         </UFormField>
 
-        <div class="border border-default rounded-lg overflow-hidden">
+        <div class="border border-default rounded-lg overflow-x-auto">
           <table class="w-full text-sm">
             <thead class="bg-elevated/50 text-left text-muted">
               <tr>
