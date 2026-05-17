@@ -59,7 +59,7 @@ const groups = computed(() => [{
       <template #header="{ collapsed }">
         <div class="flex items-center gap-2 px-1" :class="collapsed ? 'justify-center' : ''">
           <UIcon name="i-lucide-shield-check" class="size-6 text-primary shrink-0" />
-          <span v-if="!collapsed" class="font-semibold">nameVerify</span>
+          <span v-if="!collapsed" class="font-semibold">Name Verify</span>
         </div>
       </template>
 

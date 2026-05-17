@@ -86,7 +86,7 @@ onMounted(load)
               <tr>
                 <th class="px-3 py-2">Title</th>
                 <th v-if="isAdmin" class="px-3 py-2">Owner</th>
-                <th class="px-3 py-2 w-40">Created</th>
+                <th class="px-3 py-2 w-60">Created</th>
               </tr>
             </thead>
             <tbody>
@@ -103,7 +103,7 @@ onMounted(load)
                   {{ list.owner?.full_name || list.owner?.email || '—' }}
                 </td>
                 <td class="px-3 py-2 text-muted">
-                  {{ format(new Date(list.created_at), 'PP') }}
+                  {{ format(new Date(list.created_at), 'PP p') }}                
                 </td>
               </tr>
             </tbody>
