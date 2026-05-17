@@ -7,18 +7,34 @@ defineProps<{
 
 const colorMode = useColorMode()
 const appConfig = useAppConfig()
+const supabase = useSupabaseClient()
+const supabaseUser = useSupabaseUser()
+const { profile } = useCurrentProfile()
 
 const colors = ['red', 'orange', 'amber', 'yellow', 'lime', 'green', 'emerald', 'teal', 'cyan', 'sky', 'blue', 'indigo', 'violet', 'purple', 'fuchsia', 'pink', 'rose']
 const neutrals = ['slate', 'gray', 'zinc', 'neutral', 'stone']
 
-// Placeholder user — will be replaced by Supabase auth in a later step.
-const user = ref({
-  name: 'Guest',
-  avatar: {
-    src: '',
-    alt: 'Guest'
+const user = computed(() => {
+  const meta = (supabaseUser.value?.user_metadata ?? {}) as Record<string, unknown>
+  const name
+    = profile.value?.full_name
+      || (meta.full_name as string | undefined)
+      || (meta.name as string | undefined)
+      || supabaseUser.value?.email
+      || 'Account'
+  return {
+    name,
+    avatar: {
+      src: (meta.avatar_url as string | undefined) || (meta.picture as string | undefined) || '',
+      alt: name
+    }
   }
 })
+
+async function signOut() {
+  await supabase.auth.signOut()
+  await navigateTo('/login')
+}
 
 const items = computed<DropdownMenuItem[][]>(() => ([[{
   type: 'label',
@@ -47,7 +63,6 @@ const items = computed<DropdownMenuItem[][]>(() => ([[{
       type: 'checkbox',
       onSelect: (e) => {
         e.preventDefault()
-
         appConfig.ui.colors.primary = color
       }
     }))
@@ -67,7 +82,6 @@ const items = computed<DropdownMenuItem[][]>(() => ([[{
       checked: appConfig.ui.colors.neutral === color,
       onSelect: (e) => {
         e.preventDefault()
-
         appConfig.ui.colors.neutral = color
       }
     }))
@@ -82,7 +96,6 @@ const items = computed<DropdownMenuItem[][]>(() => ([[{
     checked: colorMode.value === 'light',
     onSelect(e: Event) {
       e.preventDefault()
-
       colorMode.preference = 'light'
     }
   }, {
@@ -101,7 +114,8 @@ const items = computed<DropdownMenuItem[][]>(() => ([[{
   }]
 }], [{
   label: 'Log out',
-  icon: 'i-lucide-log-out'
+  icon: 'i-lucide-log-out',
+  onSelect: () => { signOut() }
 }]]))
 </script>
 
@@ -114,7 +128,7 @@ const items = computed<DropdownMenuItem[][]>(() => ([[{
     <UButton
       v-bind="{
         ...user,
-        label: collapsed ? undefined : user?.name,
+        label: collapsed ? undefined : user.name,
         trailingIcon: collapsed ? undefined : 'i-lucide-chevrons-up-down'
       }"
       color="neutral"

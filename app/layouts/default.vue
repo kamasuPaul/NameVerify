@@ -1,48 +1,49 @@
 <script setup lang="ts">
 import type { NavigationMenuItem } from '@nuxt/ui'
 
-const route = useRoute()
-
 const open = ref(false)
+const { profile } = useCurrentProfile()
 
-const links = [[{
-  label: 'My Lists',
-  icon: 'i-lucide-list-checks',
-  to: '/',
-  onSelect: () => {
-    open.value = false
+const links = computed(() => {
+  const items: NavigationMenuItem[] = [
+    {
+      label: 'My Lists',
+      icon: 'i-lucide-list-checks',
+      to: '/',
+      onSelect: () => { open.value = false }
+    },
+    {
+      label: 'New List',
+      icon: 'i-lucide-plus-circle',
+      to: '/lists/new',
+      onSelect: () => { open.value = false }
+    }
+  ]
+
+  if (profile.value?.role === 'admin') {
+    items.push({
+      label: 'Members',
+      icon: 'i-lucide-users',
+      to: '/members',
+      onSelect: () => { open.value = false }
+    })
   }
-}, {
-  label: 'New List',
-  icon: 'i-lucide-plus-circle',
-  to: '/lists/new',
-  onSelect: () => {
-    open.value = false
-  }
-}, {
-  label: 'Members',
-  icon: 'i-lucide-users',
-  to: '/members',
-  onSelect: () => {
-    open.value = false
-  }
-}, {
-  label: 'Settings',
-  icon: 'i-lucide-settings',
-  to: '/settings',
-  onSelect: () => {
-    open.value = false
-  }
-}]] satisfies NavigationMenuItem[][]
+
+  items.push({
+    label: 'Settings',
+    icon: 'i-lucide-settings',
+    to: '/settings',
+    onSelect: () => { open.value = false }
+  })
+
+  return [items] satisfies NavigationMenuItem[][]
+})
 
 const groups = computed(() => [{
   id: 'links',
   label: 'Go to',
-  items: links.flat()
+  items: links.value.flat()
 }])
-
-// route is referenced in groups via reactivity even though unused directly
-void route
 </script>
 
 <template>

@@ -3,6 +3,7 @@ export default defineNuxtConfig({
   modules: [
     '@nuxt/eslint',
     '@nuxt/ui',
+    '@nuxtjs/supabase',
     '@vueuse/nuxt'
   ],
 
@@ -11,6 +12,20 @@ export default defineNuxtConfig({
   },
 
   css: ['~/assets/css/main.css'],
+
+  supabase: {
+    redirectOptions: {
+      login: '/login',
+      callback: '/confirm',
+      exclude: ['/login']
+    }
+  },
+
+  runtimeConfig: {
+    public: {
+      coreCheckBaseUrl: ''
+    }
+  },
 
   compatibilityDate: '2024-07-11',
 
