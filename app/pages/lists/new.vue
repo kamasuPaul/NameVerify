@@ -19,8 +19,12 @@ function newRow(): DraftRow {
 const title = ref('')
 const rows = ref<DraftRow[]>([newRow()])
 const verifying = ref(false)
+const saving = ref(false)
 
 const { lookupMany } = useLookup()
+const supabase = useSupabaseClient()
+const supabaseUser = useSupabaseUser()
+const toast = useToast()
 
 function isRowReady(r: DraftRow): boolean {
   const amount = Number(r.amount)
@@ -39,6 +43,14 @@ const allRowsReady = computed(
 )
 
 const hasVerified = computed(() => rows.value.some(r => r.status))
+
+const allRowsVerified = computed(
+  () => rows.value.length > 0 && rows.value.every(r => r.status && r.phoneE164)
+)
+
+const canSave = computed(
+  () => !saving.value && !!title.value.trim() && allRowsVerified.value
+)
 
 const summary = computed(() => {
   const counts = { matched: 0, mismatch: 0, not_found: 0, error: 0 }
@@ -73,6 +85,67 @@ async function verify() {
   })
   verifying.value = false
 }
+
+async function save() {
+  if (!canSave.value) return
+  saving.value = true
+
+  const { data: sess } = await supabase.auth.getSession()
+  const session = sess.session
+  if (!session) {
+    toast.add({
+      title: 'Not signed in',
+      description: 'Please refresh and try again.',
+      color: 'error'
+    })
+    saving.value = false
+    return
+  }
+
+  const { data: list, error: listErr } = await supabase
+    .from('lists')
+    .insert({
+      owner_id: session.user.id,
+      title: title.value.trim()
+    })
+    .select('id')
+    .single()
+
+  if (listErr || !list) {
+    toast.add({
+      title: 'Failed to save list',
+      description: listErr?.message,
+      color: 'error'
+    })
+    saving.value = false
+    return
+  }
+
+  const payload = rows.value.map((r, i) => ({
+    list_id: list.id,
+    name: r.name.trim(),
+    phone: r.phoneE164!,
+    amount: Number(r.amount),
+    telco_name: r.telcoName,
+    lookup_status: r.status!,
+    position: i
+  }))
+
+  const { error: rowsErr } = await supabase.from('list_rows').insert(payload)
+
+  if (rowsErr) {
+    toast.add({
+      title: 'List saved but rows failed',
+      description: rowsErr.message,
+      color: 'error'
+    })
+    saving.value = false
+    return
+  }
+
+  toast.add({ title: 'List saved', color: 'success' })
+  await navigateTo(`/lists/${list.id}`)
+}
 </script>
 
 <template>
@@ -84,6 +157,14 @@ async function verify() {
         </template>
 
         <template #right>
+          <UButton
+            variant="subtle"
+            :loading="saving"
+            :disabled="!canSave"
+            @click="save"
+          >
+            Save list
+          </UButton>
           <UButton
             color="primary"
             :loading="verifying"
@@ -98,7 +179,7 @@ async function verify() {
 
     <template #body>
       <div class="flex flex-col gap-6 max-w-5xl">
-        <UFormField label="Title">
+        <UFormField label="Title" required>
           <UInput v-model="title" placeholder="e.g. Payroll — May 2026" />
         </UFormField>
 
