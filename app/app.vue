@@ -17,7 +17,7 @@ useHead({
   }
 })
 
-const title = 'nameVerify'
+const title = 'Name Verify'
 const description = 'Verify phone-number-to-name registrations against the telco registry, save verified lists, and export them.'
 
 useSeoMeta({

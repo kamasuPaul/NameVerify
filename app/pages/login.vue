@@ -36,7 +36,7 @@ async function signIn() {
       <div class="flex flex-col items-center gap-2 mb-6">
         <UIcon name="i-lucide-shield-check" class="size-10 text-primary" />
         <h1 class="text-xl font-semibold">
-          nameVerify
+          Name Verify
         </h1>
         <p class="text-sm text-muted text-center">
           Sign in with the Google account you were invited with.

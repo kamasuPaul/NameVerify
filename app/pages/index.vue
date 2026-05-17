@@ -10,7 +10,7 @@ interface ListRow {
 }
 
 const supabase = useSupabaseClient()
-const { profile } = useCurrentProfile()
+const { profile, refresh: refreshProfile } = useCurrentProfile()
 
 const lists = ref<ListRow[]>([])
 const loading = ref(true)
@@ -21,6 +21,7 @@ const isAdmin = computed(() => profile.value?.role === 'admin')
 async function load() {
   loading.value = true
   errorMessage.value = null
+  await refreshProfile()
   const { data, error } = await supabase
     .from('lists')
     .select('id, title, created_at, owner_id, owner:profiles!owner_id(full_name, email)')

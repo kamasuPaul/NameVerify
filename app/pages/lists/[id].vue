@@ -13,7 +13,7 @@ interface ListDetail {
 
 const route = useRoute()
 const supabase = useSupabaseClient()
-const { profile } = useCurrentProfile()
+const { profile, refresh: refreshProfile } = useCurrentProfile()
 const { exportExcel, exportPdf } = useListExport()
 const toast = useToast()
 
@@ -68,6 +68,7 @@ const totalAmount = computed(() =>
 async function load() {
   loading.value = true
   errorMessage.value = null
+  await refreshProfile()
   const { data, error } = await supabase
     .from('lists')
     .select('id, title, created_at, owner_id, owner:profiles!owner_id(full_name, email), list_rows(*)')

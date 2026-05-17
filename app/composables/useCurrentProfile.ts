@@ -8,19 +8,30 @@ export function useCurrentProfile() {
   const loading = useState<boolean>('current-profile-loading', () => false)
   const error = useState<string | null>('current-profile-error', () => null)
 
-  async function load() {
+  async function refresh() {
     if (!user.value) {
       profile.value = null
       return
     }
-    if (profile.value?.id === user.value.id) return
+
+    // Force the supabase client to hydrate its session before querying,
+    // otherwise the watcher may fire before auth is attached and the
+    // SELECT goes out unauthenticated (RLS returns 0 rows → .single() errors).
+    const { data: sess } = await supabase.auth.getSession()
+    const session = sess.session
+    if (!session) {
+      profile.value = null
+      return
+    }
+
+    if (profile.value?.id === session.user.id) return
 
     loading.value = true
     error.value = null
     const { data, error: err } = await supabase
       .from('profiles')
       .select('*')
-      .eq('id', user.value.id)
+      .eq('id', session.user.id)
       .single<Profile>()
     if (err) {
       error.value = err.message
@@ -31,7 +42,7 @@ export function useCurrentProfile() {
     loading.value = false
   }
 
-  watch(user, () => { load() }, { immediate: true })
+  watch(user, refresh, { immediate: true })
 
-  return { profile, loading, error, refresh: load }
+  return { profile, loading, error, refresh }
 }
