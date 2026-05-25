@@ -13,34 +13,12 @@ interface ListDetail {
 
 const route = useRoute()
 const supabase = useSupabaseClient()
+const supabaseUser = useSupabaseUser()
 const { profile, refresh: refreshProfile } = useCurrentProfile()
 const { exportExcel, exportPdf } = useListExport()
 const toast = useToast()
 
 const exporting = ref(false)
-
-async function onExport(kind: 'excel' | 'pdf') {
-  if (!list.value) return
-  exporting.value = true
-  try {
-    const ctx = {
-      title: list.value.title,
-      createdAt: list.value.created_at,
-      rows: orderedRows.value
-    }
-    if (kind === 'excel') await exportExcel(ctx)
-    else await exportPdf(ctx)
-  } catch (e) {
-    const err = e as Error
-    toast.add({
-      title: `Export failed`,
-      description: err.message,
-      color: 'error'
-    })
-  } finally {
-    exporting.value = false
-  }
-}
 
 const id = computed(() => String(route.params.id))
 const list = ref<ListDetail | null>(null)
@@ -48,6 +26,11 @@ const loading = ref(true)
 const errorMessage = ref<string | null>(null)
 
 const isAdmin = computed(() => profile.value?.role === 'admin')
+
+const canEdit = computed(() => {
+  if (!list.value) return false
+  return isAdmin.value || list.value.owner_id === supabaseUser.value?.id
+})
 
 const orderedRows = computed(() =>
   [...(list.value?.list_rows ?? [])].sort((a, b) => a.position - b.position)
@@ -85,6 +68,29 @@ async function load() {
 }
 
 onMounted(load)
+
+async function onExport(kind: 'excel' | 'pdf') {
+  if (!list.value) return
+  exporting.value = true
+  try {
+    const ctx = {
+      title: list.value.title,
+      createdAt: list.value.created_at,
+      rows: orderedRows.value
+    }
+    if (kind === 'excel') await exportExcel(ctx)
+    else await exportPdf(ctx)
+  } catch (e) {
+    const err = e as Error
+    toast.add({
+      title: 'Export failed',
+      description: err.message,
+      color: 'error'
+    })
+  } finally {
+    exporting.value = false
+  }
+}
 </script>
 
 <template>
@@ -102,6 +108,14 @@ onMounted(load)
             icon="i-lucide-arrow-left"
           >
             Back
+          </UButton>
+          <UButton
+            v-if="canEdit"
+            :to="`/lists/${id}/edit`"
+            variant="subtle"
+            icon="i-lucide-pencil"
+          >
+            Edit
           </UButton>
           <UButton
             variant="subtle"
