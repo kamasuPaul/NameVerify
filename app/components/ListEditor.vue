@@ -75,6 +75,62 @@ const rows = ref<DraftRow[]>(
 const verifying = ref(false)
 
 const { lookupMany } = useLookup()
+const { downloadTemplate, parseFile } = useListImport()
+const toast = useToast()
+
+const fileInput = ref<HTMLInputElement | null>(null)
+const importing = ref(false)
+
+async function onFileChange(e: Event) {
+  const input = e.target as HTMLInputElement
+  const file = input.files?.[0]
+  input.value = '' // allow re-uploading the same file
+  if (!file) return
+
+  importing.value = true
+  try {
+    const imported = await parseFile(file)
+    if (!imported.length) {
+      toast.add({ title: 'No rows found in file', color: 'warning' })
+      return
+    }
+    const hasContent = rows.value.some(
+      r => r.name.trim() || r.phone.trim() || r.amount.trim()
+    )
+    if (hasContent && !window.confirm(
+      `Replace ${rows.value.length} existing row(s) with ${imported.length} imported row(s)?`
+    )) {
+      return
+    }
+    rows.value = imported.map(r => makeDraft(r))
+    toast.add({
+      title: `Loaded ${imported.length} row${imported.length === 1 ? '' : 's'}`,
+      color: 'success'
+    })
+  } catch (err) {
+    const e = err as Error
+    toast.add({
+      title: 'Failed to read file',
+      description: e.message,
+      color: 'error'
+    })
+  } finally {
+    importing.value = false
+  }
+}
+
+async function onDownloadTemplate() {
+  try {
+    await downloadTemplate()
+  } catch (err) {
+    const e = err as Error
+    toast.add({
+      title: 'Failed to download template',
+      description: e.message,
+      color: 'error'
+    })
+  }
+}
 
 function isRowReady(r: DraftRow): boolean {
   const amount = Number(r.amount)
@@ -268,7 +324,7 @@ function submit() {
       </table>
     </div>
 
-    <div>
+    <div class="flex flex-wrap gap-2 items-center">
       <UButton
         variant="ghost"
         icon="i-lucide-plus"
@@ -276,6 +332,28 @@ function submit() {
       >
         Add row
       </UButton>
+      <UButton
+        variant="ghost"
+        icon="i-lucide-upload"
+        :loading="importing"
+        @click="fileInput?.click()"
+      >
+        Upload Excel
+      </UButton>
+      <UButton
+        variant="ghost"
+        icon="i-lucide-download"
+        @click="onDownloadTemplate"
+      >
+        Download template
+      </UButton>
+      <input
+        ref="fileInput"
+        type="file"
+        accept=".xlsx,.xls,.xlsm"
+        class="hidden"
+        @change="onFileChange"
+      >
     </div>
 
     <UPageCard v-if="hasVerified" variant="subtle">
