@@ -29,7 +29,7 @@ const isAdmin = computed(() => profile.value?.role === 'admin')
 
 const canEdit = computed(() => {
   if (!list.value) return false
-  return isAdmin.value || list.value.owner_id === supabaseUser.value?.id
+  return isAdmin.value || list.value.owner_id === profile.value?.id
 })
 
 const orderedRows = computed(() =>
